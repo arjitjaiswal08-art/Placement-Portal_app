@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Placement Drive{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="dashboard-header">
+        <div class="container">
+            <h1 class="h2 mb-0">Edit Placement Drive</h1>
+            <p class="lead mb-0">Update drive details and resubmit for approval</p>
+        </div>
+    </div>
+    
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Drive
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Updating this drive will set its status back to <strong>Pending</strong> for admin approval.
+                        </div>
+
+                        <form method="POST" action="{{ url_for('edit_drive', drive_id=drive.id) }}">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Job Title *</label>
+                                {{ form.job_title(class="form-control", placeholder="e.g., Software Engineer Intern") }}
+                                {% for error in form.job_title.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Job Description *</label>
+                                {{ form.job_description(class="form-control", rows="5", placeholder="Describe the role, responsibilities, and requirements...") }}
+                                {% for error in form.job_description.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Minimum CGPA Required *</label>
+                                    {{ form.eligibility_criteria(class="form-control", placeholder="e.g., 7.0", step="0.1", min="0", max="10") }}
+                                    <small class="text-muted">Minimum CGPA for eligibility</small>
+                                    {% for error in form.eligibility_criteria.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Job Location *</label>
+                                    {{ form.location(class="form-control", placeholder="e.g., Bangalore, India") }}
+                                    {% for error in form.location.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Salary Package *</label>
+                                    {{ form.salary_package(class="form-control", placeholder="e.g., 6 LPA") }}
+                                    {% for error in form.salary_package.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Application Deadline *</label>
+                                    {{ form.application_deadline(class="form-control", type="date") }}
+                                    <small class="text-muted">Applications will close on this date</small>
+                                    {% for error in form.application_deadline.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="{{ url_for('company_dashboard') }}" class="btn btn-secondary me-2">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Save & Submit
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const yyyy = tomorrow.getFullYear();
+        const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+        const dd = String(tomorrow.getDate()).padStart(2, '0');
+
+        const minDate = `${yyyy}-${mm}-${dd}`;
+        const el = document.getElementById('{{ form.application_deadline.id }}');
+        if (el) {
+            el.min = minDate;
+        }
+    });
+</script>
+{% endblock %}

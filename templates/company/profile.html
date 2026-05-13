@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Company Profile{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="dashboard-header">
+        <div class="container">
+            <h1 class="h2 mb-0">Company Profile</h1>
+            <p class="lead mb-0">Manage your company information</p>
+        </div>
+    </div>
+    
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Profile Card -->
+            <div class="col-lg-4 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="profile-avatar mb-3">
+                            <i class="fas fa-building fa-5x text-primary"></i>
+                        </div>
+                        <h4>{{ company.company_name }}</h4>
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-user-tie me-1"></i>{{ company.hr_name }}
+                        </p>
+                        <p class="text-muted mb-3">
+                            <i class="fas fa-phone me-1"></i>{{ company.hr_contact }}
+                        </p>
+                        
+                        <div class="mb-3">
+                            {% if company.is_approved %}
+                                <span class="badge bg-success">Approved</span>
+                            {% else %}
+                                <span class="badge bg-warning">Pending Approval</span>
+                            {% endif %}
+                            
+                            {% if company.user.is_blacklisted %}
+                                <span class="badge bg-danger ms-2">Blacklisted</span>
+                            {% endif %}
+                        </div>
+                        
+                        <p class="text-muted">
+                            <small>Registered on {{ company.created_at.strftime('%Y-%m-%d') }}</small>
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">Quick Stats</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Active Drives:</span>
+                            <strong>{{ company.drives|selectattr('status', 'equalto', 'approved')|list|length }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Applicants:</span>
+                            <strong>
+                                {% set total_applicants = 0 %}
+                                {% for drive in company.drives %}
+                                    {% set total_applicants = total_applicants + drive.applications|length %}
+                                {% endfor %}
+                                {{ total_applicants }}
+                            </strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Pending Drives:</span>
+                            <strong>{{ company.drives|selectattr('status', 'equalto', 'pending')|list|length }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Edit Form -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('company_profile') }}">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Company Name *</label>
+                                    {{ form.company_name(class="form-control") }}
+                                    {% for error in form.company_name.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">HR Name *</label>
+                                    {{ form.hr_name(class="form-control") }}
+                                    {% for error in form.hr_name.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">HR Contact *</label>
+                                    {{ form.hr_contact(class="form-control") }}
+                                    {% for error in form.hr_contact.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Website</label>
+                                    {{ form.website(class="form-control") }}
+                                    {% for error in form.website.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Address</label>
+                                {{ form.address(class="form-control", rows="3") }}
+                                {% for error in form.address.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Company Description</label>
+                                {{ form.description(class="form-control", rows="4") }}
+                                {% for error in form.description.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Update Profile
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Current Drives -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-briefcase me-2"></i>Your Placement Drives
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if company.drives %}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Job Title</th>
+                                            <th>Status</th>
+                                            <th>Deadline</th>
+                                            <th>Applicants</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for drive in company.drives %}
+                                            <tr>
+                                                <td>{{ drive.job_title }}</td>
+                                                <td>
+                                                    {% if drive.status == 'pending' %}
+                                                        <span class="badge bg-warning">Pending</span>
+                                                    {% elif drive.status == 'approved' %}
+                                                        <span class="badge bg-success">Approved</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">{{ drive.status|title }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ drive.application_deadline.strftime('%Y-%m-%d') }}</td>
+                                                <td>{{ drive.applications|length }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">No placement drives created yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

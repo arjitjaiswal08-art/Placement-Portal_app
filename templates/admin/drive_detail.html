@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Drive Details - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">Placement Drive</h1>
+                    <p class="lead mb-0">Approve or reject placement drives in standard form</p>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if drive.status == 'pending' %}
+                        <span class="badge bg-warning align-self-center">Pending</span>
+                    {% elif drive.status == 'approved' %}
+                        <span class="badge bg-success align-self-center">Approved</span>
+                    {% elif drive.status == 'rejected' %}
+                        <span class="badge bg-danger align-self-center">Rejected</span>
+                    {% else %}
+                        <span class="badge bg-secondary align-self-center">{{ drive.status|title }}</span>
+                    {% endif %}
+
+                    {% if drive.status == 'pending' %}
+                        <a href="{{ url_for('approve_drive', drive_id=drive.id, next=url_for('admin_drive_detail', drive_id=drive.id)) }}" class="btn btn-success"
+                           onclick="return confirm('Approve this placement drive?')">
+                            <i class="fas fa-check me-2"></i>Approve
+                        </a>
+                        <a href="{{ url_for('reject_drive', drive_id=drive.id, next=url_for('admin_drive_detail', drive_id=drive.id)) }}" class="btn btn-danger"
+                           onclick="return confirm('Reject this placement drive?')">
+                            <i class="fas fa-times me-2"></i>Reject
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-briefcase me-2"></i>Drive Details
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Job Title</label>
+                            <input type="text" class="form-control" value="{{ drive.job_title }}" disabled>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Location</label>
+                                <input type="text" class="form-control" value="{{ drive.location or '' }}" disabled>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Package</label>
+                                <input type="text" class="form-control" value="{{ drive.salary_package or '' }}" disabled>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Minimum CGPA</label>
+                                <input type="text" class="form-control" value="{{ drive.eligibility_criteria }}" disabled>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Application Deadline</label>
+                                <input type="text" class="form-control" value="{{ drive.application_deadline.strftime('%Y-%m-%d') if drive.application_deadline else '' }}" disabled>
+                            </div>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label">Job Description</label>
+                            <textarea class="form-control" rows="7" disabled>{{ drive.job_description }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-building me-2"></i>Company
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Company Name</label>
+                            <input type="text" class="form-control" value="{{ drive.company.company_name }}" disabled>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">HR Name</label>
+                                <input type="text" class="form-control" value="{{ drive.company.hr_name }}" disabled>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">HR Contact</label>
+                                <input type="text" class="form-control" value="{{ drive.company.hr_contact }}" disabled>
+                            </div>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label">Website</label>
+                            <div>
+                                {% if drive.company.website %}
+                                    <a href="{{ drive.company.website }}" target="_blank" class="btn btn-outline-primary">
+                                        <i class="fas fa-external-link-alt me-2"></i>Open Website
+                                    </a>
+                                {% else %}
+                                    <p class="text-muted mb-0">No website provided</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-users me-2"></i>Applications
+                        </h6>
+                        <span class="badge bg-primary">{{ drive.applications|length }} applicants</span>
+                    </div>
+                    <div class="card-body">
+                        {% if drive.applications %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Student Name</th>
+                                            <th>Roll Number</th>
+                                            <th>CGPA</th>
+                                            <th>Status</th>
+                                            <th>Applied Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for application in drive.applications %}
+                                            <tr>
+                                                <td>{{ application.student.full_name }}</td>
+                                                <td>{{ application.student.roll_number }}</td>
+                                                <td>{{ application.student.cgpa }}</td>
+                                                <td>
+                                                    {% if application.status == 'applied' %}
+                                                        <span class="badge bg-info">Applied</span>
+                                                    {% elif application.status == 'shortlisted' %}
+                                                        <span class="badge bg-warning">Shortlisted</span>
+                                                    {% elif application.status == 'selected' %}
+                                                        <span class="badge bg-success">Selected</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">Rejected</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ application.applied_date.strftime('%Y-%m-%d') if application.applied_date else '' }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">No applications yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end">
+            <a href="{{ url_for('admin_drives') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Manage Drives
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

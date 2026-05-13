@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Register as Student{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-graduate me-2"></i>Student Registration
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('register_student') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="alert alert-success mb-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Student registration is instant. You can login immediately after registration.
+                        </div>
+                        
+                        <h5 class="mb-3">Personal Information</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Full Name *</label>
+                                {{ form.full_name(class="form-control", placeholder="Enter your full name") }}
+                                {% for error in form.full_name.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Roll Number *</label>
+                                {{ form.roll_number(class="form-control", placeholder="Enter roll number") }}
+                                {% for error in form.roll_number.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Contact Number *</label>
+                                {{ form.contact(class="form-control", placeholder="Enter contact number") }}
+                                {% for error in form.contact.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email Address *</label>
+                                {{ form.email(class="form-control", placeholder="Enter email address") }}
+                                {% for error in form.email.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <h5 class="mb-3 mt-4">Academic Information</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Department *</label>
+                                {{ form.department(class="form-select") }}
+                                {% for error in form.department.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Semester *</label>
+                                {{ form.semester(class="form-select") }}
+                                {% for error in form.semester.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Current CGPA *</label>
+                                {{ form.cgpa(class="form-control", placeholder="Enter CGPA (e.g., 8.5)", step="0.01", min="0", max="10") }}
+                                {% for error in form.cgpa.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Skills</label>
+                            {{ form.skills(class="form-control", rows="3", 
+                                placeholder="List your skills (comma separated). Example: Python, Java, Web Development, Data Structures") }}
+                            {% for error in form.skills.errors %}
+                                <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <h5 class="mb-3">Account Information</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Password *</label>
+                                {{ form.password(class="form-control", placeholder="Enter password") }}
+                                <small class="text-muted">Minimum 6 characters</small>
+                                {% for error in form.password.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Confirm Password *</label>
+                                {{ form.confirm_password(class="form-control", placeholder="Confirm password") }}
+                                {% for error in form.confirm_password.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning mb-4">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Important:</strong> You can upload your resume after login in your profile section.
+                        </div>
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="studentTerms" required>
+                            <label class="form-check-label" for="studentTerms">
+                                I confirm that the information provided is accurate
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-user-plus me-2"></i>Register as Student
+                            </button>
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Back to Login
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

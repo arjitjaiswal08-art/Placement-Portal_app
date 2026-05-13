@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Student Details - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">Student Profile</h1>
+                    <p class="lead mb-0">View and manage student profile in standard form</p>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if student.user.is_blacklisted %}
+                        <span class="badge bg-danger align-self-center">Blacklisted</span>
+                        <a href="{{ url_for('unblacklist_student', student_id=student.id) }}" class="btn btn-success"
+                           onclick="return confirm('Activate this student account?')">
+                            <i class="fas fa-check me-2"></i>Activate
+                        </a>
+                    {% else %}
+                        <span class="badge bg-success align-self-center">Active</span>
+                        <a href="{{ url_for('blacklist_student', student_id=student.id) }}" class="btn btn-warning"
+                           onclick="return confirm('Are you sure you want to blacklist this student?')">
+                            <i class="fas fa-ban me-2"></i>Blacklist
+                        </a>
+                    {% endif %}
+
+                    <a href="{{ url_for('admin_student_edit', student_id=student.id) }}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Edit
+                    </a>
+
+                    <form method="POST" action="{{ url_for('admin_student_delete', student_id=student.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this student?');">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-user me-2"></i>Personal Details
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" value="{{ student.full_name }}" disabled>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Roll Number</label>
+                                <input type="text" class="form-control" value="{{ student.roll_number }}" disabled>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Contact</label>
+                                <input type="text" class="form-control" value="{{ student.contact }}" disabled>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Department</label>
+                                <input type="text" class="form-control" value="{{ student.department }}" disabled>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Semester</label>
+                                <input type="text" class="form-control" value="{{ student.semester }}" disabled>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-graduation-cap me-2"></i>Academic Details
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">CGPA</label>
+                            <input type="text" class="form-control" value="{{ student.cgpa }}" disabled>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label">Created At</label>
+                            <input type="text" class="form-control" value="{{ student.created_at.strftime('%Y-%m-%d %H:%M') if student.created_at else '' }}" disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-tools me-2"></i>Skills
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <textarea class="form-control" rows="6" disabled>{{ student.skills or 'No skills listed' }}</textarea>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-file-alt me-2"></i>Resume
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if student.resume_path %}
+                            <a href="{{ url_for('static', filename='uploads/' + student.resume_path) }}" target="_blank" class="btn btn-outline-primary">
+                                <i class="fas fa-download me-2"></i>Download Resume
+                            </a>
+                        {% else %}
+                            <p class="text-muted mb-0">No resume uploaded</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-briefcase me-2"></i>Applications History
+                </h6>
+                <span class="badge bg-primary">{{ student.applications|length }} applications</span>
+            </div>
+            <div class="card-body">
+                {% if student.applications %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Job Title</th>
+                                    <th>Status</th>
+                                    <th>Applied Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in student.applications %}
+                                    <tr>
+                                        <td>{{ application.drive.company.company_name }}</td>
+                                        <td>{{ application.drive.job_title }}</td>
+                                        <td>
+                                            {% if application.status == 'applied' %}
+                                                <span class="badge bg-info">Applied</span>
+                                            {% elif application.status == 'shortlisted' %}
+                                                <span class="badge bg-warning">Shortlisted</span>
+                                            {% elif application.status == 'selected' %}
+                                                <span class="badge bg-success">Selected</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Rejected</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ application.applied_date.strftime('%Y-%m-%d') if application.applied_date else '' }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No applications submitted yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end">
+            <a href="{{ url_for('admin_students') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Manage Students
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+
+{% block title %}View Applications - {{ drive.job_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="dashboard-header">
+        <div class="container">
+            <h1 class="h2 mb-0">Applications for {{ drive.job_title }}</h1>
+            <p class="lead mb-0">Review and manage student applications</p>
+        </div>
+    </div>
+    
+    <div class="container mt-4">
+        <!-- Drive Info -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>{{ drive.job_title }}</h5>
+                        <p class="mb-1"><strong>Location:</strong> {{ drive.location }}</p>
+                        <p class="mb-1"><strong>Package:</strong> {{ drive.salary_package }}</p>
+                        <p class="mb-1"><strong>Eligibility:</strong> Min CGPA {{ drive.eligibility_criteria }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Deadline:</strong> {{ drive.application_deadline.strftime('%Y-%m-%d') }}</p>
+                        <p class="mb-1"><strong>Applications:</strong> {{ applications|length }}</p>
+                        <p class="mb-1"><strong>Status:</strong> 
+                            {% if drive.status == 'approved' %}
+                                <span class="badge bg-success">Active</span>
+                            {% elif drive.status == 'pending' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% elif drive.status in ['closed', 'rejected'] %}
+                                <span class="badge bg-danger">{{ drive.status|title }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ drive.status|title }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Applications -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-users me-2"></i>Student Applications
+                </h6>
+                <div>
+                    <span class="badge bg-info me-2">Applied: {{ applications|selectattr('status', 'equalto', 'applied')|list|length }}</span>
+                    <span class="badge bg-warning me-2">Shortlisted: {{ applications|selectattr('status', 'equalto', 'shortlisted')|list|length }}</span>
+                    <span class="badge bg-success me-2">Selected: {{ applications|selectattr('status', 'equalto', 'selected')|list|length }}</span>
+                    <span class="badge bg-danger">Rejected: {{ applications|selectattr('status', 'equalto', 'rejected')|list|length }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if applications %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Roll Number</th>
+                                    <th>CGPA</th>
+                                    <th>Department</th>
+                                    <th>Applied Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in applications %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ application.student.full_name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ application.student.contact }}</small>
+                                        </td>
+                                        <td>{{ application.student.roll_number }}</td>
+                                        <td>{{ application.student.cgpa }}</td>
+                                        <td>{{ application.student.department }}</td>
+                                        <td>{{ application.applied_date.strftime('%Y-%m-%d') }}</td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if application.status == 'applied' %}bg-info
+                                                {% elif application.status == 'shortlisted' %}bg-warning
+                                                {% elif application.status == 'selected' %}bg-success
+                                                {% else %}bg-danger{% endif %}">
+                                                {{ application.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-secondary dropdown-toggle" 
+                                                        type="button" data-bs-toggle="dropdown">
+                                                    Update Status
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <button class="dropdown-item js-update-status" data-application-id="{{ application.id }}" data-status="applied" data-current-status="{{ application.status }}">
+                                                            <i class="fas fa-paper-plane text-info me-2"></i>Applied
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <button class="dropdown-item js-update-status" data-application-id="{{ application.id }}" data-status="shortlisted" data-current-status="{{ application.status }}">
+                                                            <i class="fas fa-list text-warning me-2"></i>Shortlisted
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <button class="dropdown-item js-select-student" data-application-id="{{ application.id }}" data-status="selected" data-current-status="{{ application.status }}">
+                                                            <i class="fas fa-check-circle text-success me-2"></i>Selected
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <button class="dropdown-item js-update-status" data-application-id="{{ application.id }}" data-status="rejected" data-current-status="{{ application.status }}">
+                                                            <i class="fas fa-times-circle text-danger me-2"></i>Rejected
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <button class="btn btn-sm btn-info mt-1" data-bs-toggle="modal" 
+                                                    data-bs-target="#studentModal{{ application.id }}">
+                                                <i class="fas fa-eye"></i> View
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Student Details Modal -->
+                                    <div class="modal fade" id="studentModal{{ application.id }}" tabindex="-1">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">{{ application.student.full_name }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <h6>Academic Details</h6>
+                                                            <p><strong>Roll Number:</strong> {{ application.student.roll_number }}</p>
+                                                            <p><strong>Department:</strong> {{ application.student.department }}</p>
+                                                            <p><strong>Semester:</strong> {{ application.student.semester }}</p>
+                                                            <p><strong>CGPA:</strong> {{ application.student.cgpa }}</p>
+                                                            <p><strong>Contact:</strong> {{ application.student.contact }}</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <h6>Skills</h6>
+                                                            <p>{{ application.student.skills or 'No skills listed' }}</p>
+                                                            
+                                                            {% if application.student.resume_path %}
+                                                                <h6 class="mt-3">Resume</h6>
+                                                                <a href="{{ url_for('static', filename='uploads/' + application.student.resume_path) }}" 
+                                                                   target="_blank" class="btn btn-sm btn-outline-primary">
+                                                                    <i class="fas fa-download me-1"></i>Download Resume
+                                                                </a>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="mt-4">
+                                                        <h6>Application Status</h6>
+                                                        <p>
+                                                            <strong>Current Status:</strong> 
+                                                            <span class="badge 
+                                                                {% if application.status == 'applied' %}bg-info
+                                                                {% elif application.status == 'shortlisted' %}bg-warning
+                                                                {% elif application.status == 'selected' %}bg-success
+                                                                {% else %}bg-danger{% endif %}">
+                                                                {{ application.status|title }}
+                                                            </span>
+                                                        </p>
+                                                        <p><strong>Applied Date:</strong> {{ application.applied_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-4x text-muted mb-3"></i>
+                        <h5>No Applications Yet</h5>
+                        <p class="text-muted">No students have applied to this placement drive yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Interview Details Modal -->
+<div class="modal fade" id="interviewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Interview Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="interviewForm">
+                    <input type="hidden" id="interviewApplicationId" name="application_id">
+                    <div class="mb-3">
+                        <label for="interviewLink" class="form-label">Interview Link</label>
+                        <input type="url" class="form-control" id="interviewLink" name="interview_link" placeholder="https://example.com/interview">
+                        <small class="text-muted">Enter the interview meeting link (e.g., Google Meet, Zoom)</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="interviewRemarks" class="form-label">Interview Remarks</label>
+                        <textarea class="form-control" id="interviewRemarks" name="interview_remarks" rows="3" placeholder="Add any notes or instructions for the student"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitInterviewDetails()">Select & Add Details</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateStatus(applicationId, status, currentStatus) {
+    if (!confirm('Are you sure you want to update the application status?')) {
+        return;
+    }
+
+    if (currentStatus === 'selected' && status === 'shortlisted') {
+        alert('Warning: This application is already Selected and cannot be changed back to Shortlisted.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('status', status);
+
+    fetch(`/company/application/${applicationId}/update_status`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Status updated successfully!');
+            location.reload();
+        } else {
+            alert('Error updating status: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating status');
+    });
+}
+
+function submitInterviewDetails() {
+    const applicationId = document.getElementById('interviewApplicationId').value;
+    const interviewLink = document.getElementById('interviewLink').value;
+    const interviewRemarks = document.getElementById('interviewRemarks').value;
+
+    const formData = new FormData();
+    formData.append('status', 'selected');
+    formData.append('interview_link', interviewLink);
+    formData.append('interview_remarks', interviewRemarks);
+
+    fetch(`/company/application/${applicationId}/update_status`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Student selected with interview details!');
+            location.reload();
+        } else {
+            alert('Error updating status: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating status');
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const buttons = document.querySelectorAll('.js-update-status');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const applicationId = this.getAttribute('data-application-id');
+            const status = this.getAttribute('data-status');
+            const currentStatus = this.getAttribute('data-current-status');
+            updateStatus(applicationId, status, currentStatus);
+        });
+    });
+
+    const selectButtons = document.querySelectorAll('.js-select-student');
+    selectButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const applicationId = this.getAttribute('data-application-id');
+            const currentStatus = this.getAttribute('data-current-status');
+
+            if (currentStatus === 'selected') {
+                alert('This student is already selected.');
+                return;
+            }
+
+            document.getElementById('interviewApplicationId').value = applicationId;
+            document.getElementById('interviewLink').value = '';
+            document.getElementById('interviewRemarks').value = '';
+
+            const modal = new bootstrap.Modal(document.getElementById('interviewModal'));
+            modal.show();
+        });
+    });
+});
+</script>
+{% endblock %}

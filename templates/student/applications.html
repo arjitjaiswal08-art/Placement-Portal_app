@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}My Applications{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="dashboard-header">
+        <div class="container">
+            <h1 class="h2 mb-0">My Applications</h1>
+            <p class="lead mb-0">Track your placement applications</p>
+        </div>
+    </div>
+    
+    <div class="container mt-4">
+        <!-- Application Stats -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stat-card border-primary">
+                    <div class="card-body text-center">
+                        <h3 class="mb-0">{{ applications|length }}</h3>
+                        <p class="text-muted mb-0">Total Applied</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card border-info">
+                    <div class="card-body text-center">
+                        <h3 class="mb-0">{{ applications|selectattr('status', 'equalto', 'applied')|list|length }}</h3>
+                        <p class="text-muted mb-0">Under Review</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card border-warning">
+                    <div class="card-body text-center">
+                        <h3 class="mb-0">{{ applications|selectattr('status', 'equalto', 'shortlisted')|list|length }}</h3>
+                        <p class="text-muted mb-0">Shortlisted</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card border-success">
+                    <div class="card-body text-center">
+                        <h3 class="mb-0">{{ applications|selectattr('status', 'equalto', 'selected')|list|length }}</h3>
+                        <p class="text-muted mb-0">Selected</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Applications Table -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-list me-2"></i>Application History
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if applications %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Job Title</th>
+                                    <th>Package</th>
+                                    <th>Applied Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in applications|sort(attribute='applied_date', reverse=true) %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ application.drive.company.company_name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ application.drive_location or application.drive.location }}</small>
+                                        </td>
+                                        <td>{{ application.drive_job_title or application.drive.job_title }}</td>
+                                        <td>
+                                            <span class="badge bg-success">{{ application.drive_salary_package or application.drive.salary_package }}</span>
+                                        </td>
+                                        <td>{{ application.applied_date.strftime('%Y-%m-%d') }}</td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if application.status == 'applied' %}bg-info
+                                                {% elif application.status == 'shortlisted' %}bg-warning
+                                                {% elif application.status == 'selected' %}bg-success
+                                                {% else %}bg-danger{% endif %}">
+                                                {{ application.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-info" data-bs-toggle="modal" 
+                                                    data-bs-target="#applicationModal{{ application.id }}">
+                                                <i class="fas fa-eye"></i> Details
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Application Details Modal -->
+                                    <div class="modal fade" id="applicationModal{{ application.id }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Application Details</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <h6>Company Information</h6>
+                                                        <p><strong>Company:</strong> {{ application.drive.company.company_name }}</p>
+                                                        <p><strong>HR Contact:</strong> {{ application.drive.company.hr_name }}</p>
+                                                        <p><strong>Job Title:</strong> {{ application.drive_job_title or application.drive.job_title }}</p>
+                                                        <p><strong>Location:</strong> {{ application.drive_location or application.drive.location }}</p>
+                                                        <p><strong>Package:</strong> {{ application.drive_salary_package or application.drive.salary_package }}</p>
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <h6>Application Status</h6>
+                                                        <p>
+                                                            <strong>Current Status:</strong> 
+                                                            <span class="badge 
+                                                                {% if application.status == 'applied' %}bg-info
+                                                                {% elif application.status == 'shortlisted' %}bg-warning
+                                                                {% elif application.status == 'selected' %}bg-success
+                                                                {% else %}bg-danger{% endif %}">
+                                                                {{ application.status|title }}
+                                                            </span>
+                                                        </p>
+                                                        <p><strong>Applied Date:</strong> {{ application.applied_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                                                        {% if application.updated_at %}
+                                                            <p><strong>Last Updated:</strong> {{ application.updated_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                                                        {% endif %}
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <h6>Job Description</h6>
+                                                        <p>{{ (application.drive_job_description or application.drive.job_description)|truncate(200) }}</p>
+                                                    </div>
+                                                    
+                                                    <div class="alert 
+                                                        {% if application.status == 'applied' %}alert-info
+                                                        {% elif application.status == 'shortlisted' %}alert-warning
+                                                        {% elif application.status == 'selected' %}alert-success
+                                                        {% else %}alert-danger{% endif %}">
+                                                        <i class="fas fa-info-circle me-2"></i>
+                                                        {% if application.status == 'applied' %}
+                                                            Your application is under review by the company.
+                                                        {% elif application.status == 'shortlisted' %}
+                                                            Congratulations! You have been shortlisted. The company will contact you for next steps.
+                                                        {% elif application.status == 'selected' %}
+                                                            Congratulations! You have been selected for this position.
+                                                        {% else %}
+                                                            Your application was not selected for this position.
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
+                        <h5>No Applications Yet</h5>
+                        <p class="text-muted">You haven't applied to any placement drives yet.</p>
+                        <a href="{{ url_for('view_drives') }}" class="btn btn-primary">
+                            <i class="fas fa-briefcase me-2"></i>Browse Drives
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Status Legend -->
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-info-circle me-2"></i>Application Status Guide
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <span class="badge bg-info me-2">Applied</span>
+                        <small>Application submitted, under review</small>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <span class="badge bg-warning me-2">Shortlisted</span>
+                        <small>Selected for next round</small>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <span class="badge bg-success me-2">Selected</span>
+                        <small>Job offer received</small>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <span class="badge bg-danger me-2">Rejected</span>
+                        <small>Application not selected</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

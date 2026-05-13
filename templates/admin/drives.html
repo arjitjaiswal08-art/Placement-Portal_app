@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Placement Drives - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="dashboard-header">
+        <div class="container">
+            <h1 class="h2 mb-0">Manage Placement Drives</h1>
+            <p class="lead mb-0">Approve or reject placement drives</p>
+        </div>
+    </div>
+    
+    <div class="container mt-4">
+        <!-- Drives Table -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-briefcase me-2"></i>All Placement Drives
+                </h6>
+                <div>
+                    <span class="badge bg-primary me-2">Total: {{ drives|length }}</span>
+                    <span class="badge bg-warning me-2">Pending: {{ drives|selectattr('status', 'equalto', 'pending')|list|length }}</span>
+                    <span class="badge bg-success">Approved: {{ drives|selectattr('status', 'equalto', 'approved')|list|length }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if drives %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Job Title</th>
+                                    <th>Package</th>
+                                    <th>Deadline</th>
+                                    <th>Applications</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for drive in drives %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ drive.company.company_name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ drive.location }}</small>
+                                        </td>
+                                        <td>
+                                            {{ drive.job_title }}
+                                            <br>
+                                            <small class="text-muted">{{ drive.job_description|truncate(50) }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">{{ drive.salary_package }}</span>
+                                        </td>
+                                        <td>
+                                            {{ drive.application_deadline.strftime('%Y-%m-%d') }}
+                                            <br>
+                                            <small class="text-muted {% if drive.application_deadline < current_date %}text-danger{% endif %}">
+                                                {% if drive.application_deadline < current_date %}
+                                                    Expired
+                                                {% else %}
+                                                    Active
+                                                {% endif %}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            {{ drive.applications|length }} applicants
+                                        </td>
+                                        <td>
+                                            {% if drive.status == 'pending' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% elif drive.status == 'approved' %}
+                                                <span class="badge bg-success">Approved</span>
+                                            {% elif drive.status == 'rejected' %}
+                                                <span class="badge bg-danger">Rejected</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ drive.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                {% if drive.status == 'pending' %}
+                                                    <a href="{{ url_for('approve_drive', drive_id=drive.id, next=request.url) }}" 
+                                                       class="btn btn-sm btn-success" 
+                                                       title="Approve"
+                                                       onclick="return confirm('Approve this placement drive?')">
+                                                        <i class="fas fa-check"></i>
+                                                    </a>
+                                                    <a href="{{ url_for('reject_drive', drive_id=drive.id, next=request.url) }}" 
+                                                       class="btn btn-sm btn-danger" 
+                                                       title="Reject"
+                                                       onclick="return confirm('Reject this placement drive?')">
+                                                        <i class="fas fa-times"></i>
+                                                    </a>
+                                                {% endif %}
+                                                <a href="{{ url_for('admin_drive_detail', drive_id=drive.id) }}" class="btn btn-sm btn-info" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-briefcase fa-4x text-muted mb-3"></i>
+                        <h5>No Placement Drives</h5>
+                        <p class="text-muted">No placement drives have been created yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

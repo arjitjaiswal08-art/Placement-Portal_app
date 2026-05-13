@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Student Profile{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="dashboard-header">
+        <div class="container">
+            <h1 class="h2 mb-0">Student Profile</h1>
+            <p class="lead mb-0">Manage your personal and academic information</p>
+        </div>
+    </div>
+    
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Profile Card -->
+            <div class="col-lg-4 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="profile-avatar mb-3">
+                            <i class="fas fa-user-graduate fa-5x text-primary"></i>
+                        </div>
+                        <h4>{{ student.full_name }}</h4>
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-id-card me-1"></i>{{ student.roll_number }}
+                        </p>
+                        <p class="text-muted mb-3">
+                            <i class="fas fa-university me-1"></i>{{ student.department }} - Semester {{ student.semester }}
+                        </p>
+                        
+                        <div class="mb-3">
+                            <span class="badge bg-info">CGPA: {{ student.cgpa }}</span>
+                            {% if student.user.is_blacklisted %}
+                                <span class="badge bg-danger ms-2">Blacklisted</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if student.resume_path %}
+                            <a href="{{ url_for('static', filename='uploads/' + student.resume_path) }}" 
+                               target="_blank" class="btn btn-sm btn-outline-primary mb-2">
+                                <i class="fas fa-download me-1"></i>Download Resume
+                            </a>
+                        {% endif %}
+                        
+                        <p class="text-muted">
+                            <small>Registered on {{ student.created_at.strftime('%Y-%m-%d') }}</small>
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">Application Stats</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Applied:</span>
+                            <strong>{{ student.applications|length }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shortlisted:</span>
+                            <strong>{{ student.applications|selectattr('status', 'equalto', 'shortlisted')|list|length }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Selected:</span>
+                            <strong>{{ student.applications|selectattr('status', 'equalto', 'selected')|list|length }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Edit Form -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('student_profile') }}" enctype="multipart/form-data">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Full Name *</label>
+                                    {{ form.full_name(class="form-control") }}
+                                    {% for error in form.full_name.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Contact Number *</label>
+                                    {{ form.contact(class="form-control") }}
+                                    {% for error in form.contact.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Department *</label>
+                                    {{ form.department(class="form-select") }}
+                                    {% for error in form.department.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Semester *</label>
+                                    {{ form.semester(class="form-select") }}
+                                    {% for error in form.semester.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">CGPA *</label>
+                                    {{ form.cgpa(class="form-control") }}
+                                    {% for error in form.cgpa.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Upload Resume (PDF)</label>
+                                    {{ form.resume(class="form-control") }}
+                                    {% for error in form.resume.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                    {% if student.resume_path %}
+                                        <small class="text-muted">Current: {{ student.resume_path }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Skills</label>
+                                {{ form.skills(class="form-control", rows="3", 
+                                    placeholder="List your technical skills, programming languages, etc. (comma separated)") }}
+                                {% for error in form.skills.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Update Profile
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Recent Applications -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-file-alt me-2"></i>Recent Applications
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if student.applications %}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Company</th>
+                                            <th>Job Title</th>
+                                            <th>Status</th>
+                                            <th>Applied Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% set sorted_applications = student.applications|sort(attribute='applied_date', reverse=true) %}
+                                        {% for application in sorted_applications %}
+                                            {% if loop.index0 < 5 %}
+                                            <tr>
+                                                <td>{{ application.drive.company.company_name }}</td>
+                                                <td>{{ application.drive.job_title }}</td>
+                                                <td>
+                                                    {% if application.status == 'applied' %}
+                                                        <span class="badge bg-info">Applied</span>
+                                                    {% elif application.status == 'shortlisted' %}
+                                                        <span class="badge bg-warning">Shortlisted</span>
+                                                    {% elif application.status == 'selected' %}
+                                                        <span class="badge bg-success">Selected</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">Rejected</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ application.applied_date.strftime('%Y-%m-%d') }}</td>
+                                            </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% if student.applications|length > 5 %}
+                                <div class="text-center mt-2">
+                                    <a href="{{ url_for('student_applications') }}" class="btn btn-sm btn-outline-primary">
+                                        View All Applications
+                                    </a>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <p class="text-muted mb-0">No applications submitted yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

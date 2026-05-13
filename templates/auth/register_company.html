@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Register as Company{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-building me-2"></i>Company Registration
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('register_company') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Company registration requires admin approval. You can login only after approval.
+                        </div>
+                        
+                        <h5 class="mb-3">Company Information</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Company Name *</label>
+                                {{ form.company_name(class="form-control", placeholder="Enter company name") }}
+                                {% for error in form.company_name.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">HR Name *</label>
+                                {{ form.hr_name(class="form-control", placeholder="Enter HR name") }}
+                                {% for error in form.hr_name.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">HR Contact *</label>
+                                {{ form.hr_contact(class="form-control", placeholder="Enter contact number") }}
+                                {% for error in form.hr_contact.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Website</label>
+                                {{ form.website(class="form-control", placeholder="https://example.com") }}
+                                {% for error in form.website.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Company Address</label>
+                            {{ form.address(class="form-control", rows="2", placeholder="Enter company address") }}
+                            {% for error in form.address.errors %}
+                                <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Company Description</label>
+                            {{ form.description(class="form-control", rows="3", placeholder="Brief description about your company") }}
+                            {% for error in form.description.errors %}
+                                <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <h5 class="mb-3">Account Information</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Email Address *</label>
+                                {{ form.email(class="form-control", placeholder="Enter email address") }}
+                                {% for error in form.email.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Password *</label>
+                                {{ form.password(class="form-control", placeholder="Enter password") }}
+                                {% for error in form.password.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Confirm Password *</label>
+                                {{ form.confirm_password(class="form-control", placeholder="Confirm password") }}
+                                {% for error in form.confirm_password.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="terms" required>
+                            <label class="form-check-label" for="terms">
+                                I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a>
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-user-plus me-2"></i>Register Company
+                            </button>
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Back to Login
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Company Registration Agreement</h6>
+                <p>By registering as a company on this portal, you agree to:</p>
+                <ol>
+                    <li>Provide accurate and truthful information about your company</li>
+                    <li>Maintain professional conduct throughout the recruitment process</li>
+                    <li>Process applications in a timely and fair manner</li>
+                    <li>Communicate clearly with students regarding application status</li>
+                    <li>Adhere to institute placement policies and guidelines</li>
+                    <li>Protect student data and privacy as per applicable laws</li>
+                </ol>
+                <p>The institute reserves the right to revoke company access for violations of these terms.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

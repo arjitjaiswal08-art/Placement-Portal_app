@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="dashboard-header">
+        <div class="container">
+            <h1 class="h2 mb-0">Admin Dashboard</h1>
+            <p class="lead mb-0">Welcome, Administrator</p>
+        </div>
+    </div>
+    
+    <div class="container mt-4">
+        <!-- Statistics Cards -->
+        <div class="row">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stat-card border-primary">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    Total Students</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_students }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-users fa-2x text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stat-card border-success">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Total Companies</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_companies }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-building fa-2x text-success"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stat-card border-info">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    Placement Drives</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_drives }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-briefcase fa-2x text-info"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stat-card border-warning">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    Total Applications</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_applications }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-file-alt fa-2x text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pending Approvals -->
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-clock me-2"></i>Pending Company Approvals
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if pending_companies > 0 %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                You have {{ pending_companies }} company registration(s) pending approval.
+                            </div>
+                            <a href="{{ url_for('admin_companies') }}" class="btn btn-primary">
+                                Review Companies <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        {% else %}
+                            <p class="text-muted mb-0">No pending company approvals.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-clock me-2"></i>Pending Drive Approvals
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if pending_drives > 0 %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                You have {{ pending_drives }} placement drive(s) pending approval.
+                            </div>
+                            <a href="{{ url_for('admin_drives') }}" class="btn btn-primary">
+                                Review Drives <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        {% else %}
+                            <p class="text-muted mb-0">No pending drive approvals.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('admin_students') }}" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-users fa-2x mb-2"></i><br>
+                                    Manage Students
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('admin_companies') }}" class="btn btn-outline-success w-100">
+                                    <i class="fas fa-building fa-2x mb-2"></i><br>
+                                    Manage Companies
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('admin_drives') }}" class="btn btn-outline-info w-100">
+                                    <i class="fas fa-briefcase fa-2x mb-2"></i><br>
+                                    Manage Drives
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('admin_applications') }}" class="btn btn-outline-warning w-100">
+                                    <i class="fas fa-file-alt fa-2x mb-2"></i><br>
+                                    View Applications
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

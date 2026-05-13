@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}Available Placement Drives{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="dashboard-header">
+        <div class="container">
+            <h1 class="h2 mb-0">Available Placement Drives</h1>
+            <p class="lead mb-0">Browse and apply for placement opportunities</p>
+        </div>
+    </div>
+    
+    <div class="container mt-4">
+        <!-- Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Department</label>
+                        <select class="form-select" id="departmentFilter">
+                            <option value="">All Departments</option>
+                            <option value="CSE">Computer Science</option>
+                            <option value="IT">Information Technology</option>
+                            <option value="ECE">Electronics</option>
+                            <option value="EEE">Electrical</option>
+                            <option value="MECH">Mechanical</option>
+                            <option value="CIVIL">Civil</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Package</label>
+                        <select class="form-select" id="packageFilter">
+                            <option value="">All Packages</option>
+                            <option value="3">3 LPA & below</option>
+                            <option value="5">3-5 LPA</option>
+                            <option value="8">5-8 LPA</option>
+                            <option value="10">8-10 LPA</option>
+                            <option value="15">10-15 LPA</option>
+                            <option value="20">15+ LPA</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Sort By</label>
+                        <select class="form-select" id="sortFilter">
+                            <option value="deadline">Application Deadline</option>
+                            <option value="package">Package (High to Low)</option>
+                            <option value="company">Company Name</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Drives Grid -->
+        <div class="row">
+            {% if drives %}
+                {% for drive in drives %}
+                    <div class="col-lg-4 col-md-6 mb-4 drive-card" 
+                         data-department="{{ drive.company.department|default('') }}"
+                         data-package="{{ drive.salary_package|replace('LPA', '')|replace(' ', '')|float|default(0) }}">
+                        <div class="card h-100">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0">{{ drive.job_title }}</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h5 class="card-title mb-1">{{ drive.company.company_name }}</h5>
+                                        <p class="text-muted mb-1">
+                                            <i class="fas fa-map-marker-alt me-1"></i>{{ drive.location }}
+                                        </p>
+                                    </div>
+                                    <span class="badge bg-success fs-6">{{ drive.salary_package }}</span>
+                                </div>
+                                
+                                <p class="card-text">{{ drive.job_description|truncate(100) }}</p>
+                                
+                                <div class="mb-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-graduation-cap me-1"></i>
+                                        Min CGPA: {{ drive.eligibility_criteria }}
+                                    </small>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        Deadline: {{ drive.application_deadline.strftime('%Y-%m-%d') }}
+                                    </small>
+                                    
+                                    {% if drive.id in applied_drive_ids %}
+                                        <span class="badge bg-info">Already Applied</span>
+                                    {% else %}
+                                        {% set min_cgpa = drive.eligibility_criteria|safe_float %}
+                                        {% if min_cgpa is not none and student.cgpa >= min_cgpa %}
+                                            <form method="POST" action="{{ url_for('apply_for_drive', drive_id=drive.id) }}">
+                                                <button type="submit" class="btn btn-primary btn-sm"
+                                                        onclick="return confirm('Apply for {{ drive.job_title }} at {{ drive.company.company_name }}?')">
+                                                    <i class="fas fa-paper-plane me-1"></i>Apply Now
+                                                </button>
+                                            </form>
+                                        {% elif min_cgpa is none %}
+                                            <span class="badge bg-secondary">Eligibility Not Set</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Not Eligible</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="card-footer bg-light">
+                                <button class="btn btn-link btn-sm text-decoration-none" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#driveDetailsModal{{ drive.id }}">
+                                    <i class="fas fa-info-circle me-1"></i>View Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Drive Details Modal -->
+                    <div class="modal fade" id="driveDetailsModal{{ drive.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">{{ drive.job_title }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row mb-4">
+                                        <div class="col-md-6">
+                                            <h6>Company Information</h6>
+                                            <p><strong>Company:</strong> {{ drive.company.company_name }}</p>
+                                            <p><strong>HR Contact:</strong> {{ drive.company.hr_name }} ({{ drive.company.hr_contact }})</p>
+                                            {% if drive.company.website %}
+                                                <p><strong>Website:</strong> 
+                                                    <a href="{{ drive.company.website }}" target="_blank">{{ drive.company.website }}</a>
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Job Details</h6>
+                                            <p><strong>Location:</strong> {{ drive.location }}</p>
+                                            <p><strong>Package:</strong> {{ drive.salary_package }}</p>
+                                            <p><strong>Eligibility:</strong> Min CGPA {{ drive.eligibility_criteria }}</p>
+                                            <p><strong>Deadline:</strong> {{ drive.application_deadline.strftime('%Y-%m-%d') }}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h6>Job Description</h6>
+                                        <p>{{ drive.job_description }}</p>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <h6>Eligibility Criteria</h6>
+                                        <ul>
+                                            <li>Minimum CGPA: {{ drive.eligibility_criteria }}</li>
+                                            <li>Current Semester: Any</li>
+                                            <li>Department: All departments eligible</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        {% set min_cgpa = drive.eligibility_criteria|safe_float %}
+                                        {% if drive.id in applied_drive_ids %}
+                                            You have already applied for this position.
+                                        {% elif min_cgpa is none %}
+                                            This drive has invalid eligibility criteria. Please contact the administrator.
+                                        {% elif student.cgpa < min_cgpa %}
+                                            You are not eligible for this drive (Your CGPA: {{ student.cgpa }}, Required: {{ drive.eligibility_criteria }})
+                                        {% else %}
+                                            You are eligible to apply for this position.
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    {% set min_cgpa = drive.eligibility_criteria|safe_float %}
+                                    {% if drive.id not in applied_drive_ids and min_cgpa is not none and student.cgpa >= min_cgpa %}
+                                        <form method="POST" action="{{ url_for('apply_for_drive', drive_id=drive.id) }}">
+                                            <button type="submit" class="btn btn-primary"
+                                                    onclick="return confirm('Apply for {{ drive.job_title }} at {{ drive.company.company_name }}?')">
+                                                <i class="fas fa-paper-plane me-1"></i>Apply Now
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-briefcase fa-4x text-muted mb-3"></i>
+                            <h5>No Placement Drives Available</h5>
+                            <p class="text-muted">There are currently no active placement drives. Check back later!</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Filter and sort functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const departmentFilter = document.getElementById('departmentFilter');
+    const packageFilter = document.getElementById('packageFilter');
+    const sortFilter = document.getElementById('sortFilter');
+    const driveCards = document.querySelectorAll('.drive-card');
+    
+    function filterAndSortDrives() {
+        const selectedDept = departmentFilter.value;
+        const selectedPackage = packageFilter.value;
+        const sortBy = sortFilter.value;
+        
+        let filteredCards = Array.from(driveCards);
+        
+        // Filter by department
+        if (selectedDept) {
+            filteredCards = filteredCards.filter(card => {
+                return card.dataset.department === selectedDept;
+            });
+        }
+        
+        // Filter by package
+        if (selectedPackage) {
+            filteredCards = filteredCards.filter(card => {
+                const packageValue = parseFloat(card.dataset.package) || 0;
+                const filterValue = parseFloat(selectedPackage);
+                
+                switch(selectedPackage) {
+                    case '3': return packageValue <= 3;
+                    case '5': return packageValue > 3 && packageValue <= 5;
+                    case '8': return packageValue > 5 && packageValue <= 8;
+                    case '10': return packageValue > 8 && packageValue <= 10;
+                    case '15': return packageValue > 10 && packageValue <= 15;
+                    case '20': return packageValue > 15;
+                    default: return true;
+                }
+            });
+        }
+        
+        // Sort drives
+        filteredCards.sort((a, b) => {
+            switch(sortBy) {
+                case 'package':
+                    const packageA = parseFloat(a.dataset.package) || 0;
+                    const packageB = parseFloat(b.dataset.package) || 0;
+                    return packageB - packageA;
+                case 'company':
+                    const companyA = a.querySelector('.card-title').textContent;
+                    const companyB = b.querySelector('.card-title').textContent;
+                    return companyA.localeCompare(companyB);
+                case 'deadline':
+                default:
+                    // Default sorting is by card order (already sorted by deadline from server)
+                    return 0;
+            }
+        });
+        
+        // Hide all cards first
+        driveCards.forEach(card => {
+            card.style.display = 'none';
+        });
+        
+        // Show filtered cards in sorted order
+        const drivesContainer = document.querySelector('.row');
+        filteredCards.forEach(card => {
+            card.style.display = 'block';
+            drivesContainer.appendChild(card);
+        });
+        
+        // Show message if no drives match filters
+        if (filteredCards.length === 0) {
+            const noResults = document.getElementById('noResults');
+            if (!noResults) {
+                const message = document.createElement('div');
+                message.id = 'noResults';
+                message.className = 'col-12';
+                message.innerHTML = `
+                    <div class="card">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-search fa-4x text-muted mb-3"></i>
+                            <h5>No Drives Match Your Filters</h5>
+                            <p class="text-muted">Try adjusting your filter criteria.</p>
+                        </div>
+                    </div>
+                `;
+                drivesContainer.appendChild(message);
+            }
+        } else {
+            const noResults = document.getElementById('noResults');
+            if (noResults) {
+                noResults.remove();
+            }
+        }
+    }
+    
+    // Add event listeners
+    departmentFilter.addEventListener('change', filterAndSortDrives);
+    packageFilter.addEventListener('change', filterAndSortDrives);
+    sortFilter.addEventListener('change', filterAndSortDrives);
+});
+</script>
+{% endblock %}

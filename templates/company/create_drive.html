@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Create Placement Drive{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="dashboard-header">
+        <div class="container">
+            <h1 class="h2 mb-0">Create Placement Drive</h1>
+            <p class="lead mb-0">Post new job opportunities for students</p>
+        </div>
+    </div>
+    
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-plus-circle me-2"></i>New Placement Drive
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('create_drive') }}">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Job Title *</label>
+                                {{ form.job_title(class="form-control", placeholder="e.g., Software Engineer Intern") }}
+                                {% for error in form.job_title.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Job Description *</label>
+                                {{ form.job_description(class="form-control", rows="5", 
+                                    placeholder="Describe the role, responsibilities, and requirements...") }}
+                                {% for error in form.job_description.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Minimum CGPA Required *</label>
+                                    {{ form.eligibility_criteria(class="form-control", placeholder="e.g., 7.0") }}
+                                    <small class="text-muted">Minimum CGPA for eligibility</small>
+                                    {% for error in form.eligibility_criteria.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Job Location *</label>
+                                    {{ form.location(class="form-control", placeholder="e.g., Curepipe, Mauritius") }}
+                                    {% for error in form.location.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Salary Package *</label>
+                                    {{ form.salary_package(class="form-control", placeholder="e.g., 6 LPA") }}
+                                    {% for error in form.salary_package.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Application Deadline *</label>
+                                    {{ form.application_deadline(class="form-control", type="date") }}
+                                    <small class="text-muted">Applications will close on this date</small>
+                                    {% for error in form.application_deadline.errors %}
+                                        <small class="text-danger">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                After submission, this placement drive will be sent to admin for approval.
+                                Students can only apply after admin approval.
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="{{ url_for('company_dashboard') }}" class="btn btn-secondary me-2">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i>Submit for Approval
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Important Guidelines -->
+                <div class="card mt-4">
+                    <div class="card-header bg-light">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-lightbulb me-2"></i>Important Guidelines
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Provide clear and accurate job description</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Set realistic eligibility criteria</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Ensure deadline is at least 7 days from today</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Include complete salary details</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i>Once approved, you can view and manage applications</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Set minimum date for deadline (tomorrow)
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const yyyy = tomorrow.getFullYear();
+        const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+        const dd = String(tomorrow.getDate()).padStart(2, '0');
+        
+        const minDate = `${yyyy}-${mm}-${dd}`;
+        document.getElementById('{{ form.application_deadline.id }}').min = minDate;
+    });
+</script>
+{% endblock %}

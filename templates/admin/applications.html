@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}All Applications - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="dashboard-header">
+        <div class="container">
+            <h1 class="h2 mb-0">All Applications</h1>
+            <p class="lead mb-0">View all student applications across all drives</p>
+        </div>
+    </div>
+    
+    <div class="container mt-4">
+        <!-- Applications Table -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-file-alt me-2"></i>Applications Overview
+                </h6>
+                <div>
+                    <span class="badge bg-primary me-2">Total: {{ applications|length }}</span>
+                    <span class="badge bg-info me-2">Applied: {{ applications|selectattr('status', 'equalto', 'applied')|list|length }}</span>
+                    <span class="badge bg-warning me-2">Shortlisted: {{ applications|selectattr('status', 'equalto', 'shortlisted')|list|length }}</span>
+                    <span class="badge bg-success">Selected: {{ applications|selectattr('status', 'equalto', 'selected')|list|length }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if applications %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Company</th>
+                                    <th>Job Title</th>
+                                    <th>CGPA</th>
+                                    <th>Applied Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in applications %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ application.student.full_name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ application.student.roll_number }}</small>
+                                        </td>
+                                        <td>{{ application.drive.company.company_name }}</td>
+                                        <td>{{ application.drive.job_title }}</td>
+                                        <td>{{ application.student.cgpa }}</td>
+                                        <td>{{ application.applied_date.strftime('%Y-%m-%d') }}</td>
+                                        <td>
+                                            {% if application.status == 'applied' %}
+                                                <span class="badge bg-info">Applied</span>
+                                            {% elif application.status == 'shortlisted' %}
+                                                <span class="badge bg-warning">Shortlisted</span>
+                                            {% elif application.status == 'selected' %}
+                                                <span class="badge bg-success">Selected</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Rejected</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="#" class="btn btn-sm btn-info" data-bs-toggle="modal" 
+                                               data-bs-target="#applicationModal{{ application.id }}">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Application Details Modal -->
+                                    <div class="modal fade" id="applicationModal{{ application.id }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Application Details</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <h6>Student Information</h6>
+                                                        <p><strong>Name:</strong> {{ application.student.full_name }}</p>
+                                                        <p><strong>Roll Number:</strong> {{ application.student.roll_number }}</p>
+                                                        <p><strong>Department:</strong> {{ application.student.department }}</p>
+                                                        <p><strong>CGPA:</strong> {{ application.student.cgpa }}</p>
+                                                        <p><strong>Contact:</strong> {{ application.student.contact }}</p>
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <h6>Placement Drive</h6>
+                                                        <p><strong>Company:</strong> {{ application.drive.company.company_name }}</p>
+                                                        <p><strong>Job Title:</strong> {{ application.drive.job_title }}</p>
+                                                        <p><strong>Package:</strong> {{ application.drive.salary_package }}</p>
+                                                        <p><strong>Location:</strong> {{ application.drive.location }}</p>
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <h6>Application Status</h6>
+                                                        <p>
+                                                            <strong>Current Status:</strong> 
+                                                            {% if application.status == 'applied' %}
+                                                                <span class="badge bg-info">Applied</span>
+                                                            {% elif application.status == 'shortlisted' %}
+                                                                <span class="badge bg-warning">Shortlisted</span>
+                                                            {% elif application.status == 'selected' %}
+                                                                <span class="badge bg-success">Selected</span>
+                                                            {% else %}
+                                                                <span class="badge bg-danger">Rejected</span>
+                                                            {% endif %}
+                                                        </p>
+                                                        <p><strong>Applied Date:</strong> {{ application.applied_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                                                        {% if application.updated_at %}
+                                                            <p><strong>Last Updated:</strong> {{ application.updated_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                                                        {% endif %}
+                                                    </div>
+                                                    
+                                                    {% if application.student.resume_path %}
+                                                        <div class="mb-3">
+                                                            <h6>Resume</h6>
+                                                            <a href="{{ url_for('static', filename='uploads/' + application.student.resume_path) }}" 
+                                                               target="_blank" class="btn btn-sm btn-outline-primary">
+                                                                <i class="fas fa-download me-1"></i>Download Resume
+                                                            </a>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
+                        <h5>No Applications</h5>
+                        <p class="text-muted">No applications have been submitted yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
