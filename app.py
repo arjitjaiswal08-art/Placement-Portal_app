@@ -26,6 +26,45 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+# Initialize database tables on startup
+def init_db():
+    """Initialize database tables and create admin user if needed"""
+    with app.app_context():
+        db.create_all()
+        
+        # Check if admin exists
+        admin_user = User.query.filter_by(email='admin@placement.com').first()
+        if not admin_user:
+            admin_user = User(
+                email='admin@placement.com',
+                password=generate_password_hash('admin123'),
+                role='admin'
+            )
+            db.session.add(admin_user)
+            db.session.flush()
+            
+            # Create admin profile
+            admin = Admin(
+                user_id=admin_user.id,
+                full_name='Administrator'
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print("Admin user created: admin@placement.com / admin123")
+        else:
+            admin_profile = Admin.query.filter_by(user_id=admin_user.id).first()
+            if not admin_profile:
+                admin = Admin(
+                    user_id=admin_user.id,
+                    full_name='Administrator'
+                )
+                db.session.add(admin)
+                db.session.commit()
+                print("Admin profile created for existing admin user: admin@placement.com")
+
+# Call init_db on startup
+init_db()
+
 
 @app.context_processor
 def inject_current_time():
@@ -1119,32 +1158,34 @@ def request_entity_too_large(error):
 
 # Create database tables and admin user
 def create_tables():
+    """Legacy function for local development - kept for backward compatibility"""
     with app.app_context():
         db.create_all()
 
-        inspector = inspect(db.engine)
-        existing_columns = {col['name'] for col in inspector.get_columns('applications')}
-        snapshot_columns = {
-            'drive_job_title': 'VARCHAR(200)',
-            'drive_job_description': 'TEXT',
-            'drive_location': 'VARCHAR(100)',
-            'drive_salary_package': 'VARCHAR(50)',
-            'drive_application_deadline': 'DATE',
-            'drive_eligibility_criteria': 'VARCHAR(50)',
-        }
-
-        missing = [name for name in snapshot_columns.keys() if name not in existing_columns]
-        if missing:
-            for name in missing:
-                col_type = snapshot_columns[name]
-                try:
-                    db.session.execute(text(f"ALTER TABLE applications ADD COLUMN {name} {col_type}"))
-                    db.session.commit()
-                except Exception:
-                    db.session.rollback()
-
-        # Best-effort backfill: snapshot current drive data for older applications that don't have snapshots.
+        # Check for missing columns in applications table
         try:
+            inspector = inspect(db.engine)
+            existing_columns = {col['name'] for col in inspector.get_columns('applications')}
+            snapshot_columns = {
+                'drive_job_title': 'VARCHAR(200)',
+                'drive_job_description': 'TEXT',
+                'drive_location': 'VARCHAR(100)',
+                'drive_salary_package': 'VARCHAR(50)',
+                'drive_application_deadline': 'DATE',
+                'drive_eligibility_criteria': 'VARCHAR(50)',
+            }
+
+            missing = [name for name in snapshot_columns.keys() if name not in existing_columns]
+            if missing:
+                for name in missing:
+                    col_type = snapshot_columns[name]
+                    try:
+                        db.session.execute(text(f"ALTER TABLE applications ADD COLUMN {name} {col_type}"))
+                        db.session.commit()
+                    except Exception:
+                        db.session.rollback()
+
+            # Best-effort backfill: snapshot current drive data for older applications
             apps_to_backfill = Application.query.filter(Application.drive_job_title.is_(None)).all()
             if apps_to_backfill:
                 for application in apps_to_backfill:
@@ -1158,7 +1199,8 @@ def create_tables():
                     application.drive_application_deadline = drive.application_deadline
                     application.drive_eligibility_criteria = drive.eligibility_criteria
                 db.session.commit()
-        except Exception:
+        except Exception as e:
+            print(f"Migration warning: {e}")
             db.session.rollback()
         
         # Check if admin exists
@@ -1170,7 +1212,7 @@ def create_tables():
                 role='admin'
             )
             db.session.add(admin_user)
-            db.session.flush()  # Ensure admin_user.id is assigned before creating Admin
+            db.session.flush()
             
             # Create admin profile
             admin = Admin(
