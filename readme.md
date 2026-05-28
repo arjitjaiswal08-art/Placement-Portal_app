@@ -1,16 +1,55 @@
-Install dependencies:
+# AJX11 Placement Portal
 
-bash
+A comprehensive placement management system built with Flask for managing student placements, company registrations, and placement drives.
+
+## 🚀 Quick Start
+
+### Local Development
+
+1. **Clone the repository**:
+```bash
+git clone https://github.com/arjitjaiswal08-art/AJX11_Placement_portal.git
+cd AJX11_Placement_portal
+```
+
+2. **Create virtual environment**:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. **Install dependencies**:
+```bash
 pip install -r requirements.txt
-Run the application:
+```
 
-bash
+4. **Run the application**:
+```bash
 python app.py
-Access the application:
+```
 
-Open browser and go to: http://localhost:5000
+5. **Access the application**:
+   - Open browser and go to: http://localhost:5000
+   - **Admin login**: admin@placement.com / admin123
 
-Admin login: admin@placement.com / admin123
+## 🌐 Deployment
+
+Ready to deploy? Check out our comprehensive [DEPLOYMENT.md](DEPLOYMENT.md) guide!
+
+**Quick Deploy Options**:
+- **Render** (Recommended) - Free tier with persistent storage
+- **Railway** - Simple deployment with auto-scaling
+- **PythonAnywhere** - Beginner-friendly hosting
+- **Heroku** - Classic PaaS platform
+- **Vercel** - Serverless deployment
+
+### Quick Deploy to Render:
+1. Push your code to GitHub
+2. Sign up at [render.com](https://render.com)
+3. Create new Web Service from your GitHub repo
+4. Deploy with one click!
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
 
 Features Implemented:
 ✅ Core Features:
